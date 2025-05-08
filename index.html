@@ -216,6 +216,7 @@
     <form id="cardForm">
       <label for="cardData">Card Data (one per line: number,MM/YY,CVV)</label>
       <textarea id="cardData" rows="10" placeholder="1234 5678 9012 3456,12/25,123&#10;9876 5432 1098 7654,09/23,456" required></textarea>
+      <button type="button" id="pasteButton">Paste Generated Cards</button>
       <button type="submit">Validate</button>
     </form>
     <div class="result" id="result"></div>
@@ -416,6 +417,19 @@
       }
     }
 
+    // Paste Generated Cards Function
+    document.getElementById('pasteButton').addEventListener('click', function() {
+      const generatedCardsDiv = document.getElementById('generatedCards');
+      const textarea = generatedCardsDiv.querySelector('textarea');
+
+      if (textarea) {
+        const cardDataTextarea = document.getElementById('cardData');
+        cardDataTextarea.value = textarea.value;
+      } else {
+        alert('No generated cards to paste!');
+      }
+    });
+
     // Hacker Emoji Effect
     const hackerEmojis = ['☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', 'y'];
     function createHackerEmoji() {
@@ -550,3 +564,4 @@
   </script>
 </body>
 </html>
+
