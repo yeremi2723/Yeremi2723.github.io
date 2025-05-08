@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Credit Card Validator - DarkNet</title>
+  <style>
+    body {
+      background: linear-gradient(45deg, #0a0a0a, #1a1a1a);
+      color: #00ff00;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      overflow: auto;
+      position: relative;
+    }
+    .container {
+      background: #000;
+      padding: 2rem;
+      border: 3px solid #00ff00;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 800px;
+      box-shadow: 0 0 20px #00ff00, inset 0 0 10px #00ff00;
+      position: relative;
+      animation: glitch 2s infinite;
+      z-index: 1;
+      margin-bottom: 2rem;
+    }
+    @keyframes glitch {
+      0% { transform: translate(0); }
+      20% { transform: translate(-2px, 2px); }
+      40% { transform: translate(2px, -2px); }
+      60% { transform: translate(-2px, -2px); }
+      80% { transform: translate(2px, 2px); }
+      100% { transform: translate(0); }
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 10px #00ff00;
+      font-size: 2rem;
+      animation: blink 1.5s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.8rem;
+      background: #111;
+      border: 1px solid #00ff00;
+      color: #00ff00;
+      font-size: 1.2rem;
+      border-radius: 5px;
+      outline: none;
+      transition: box-shadow 0.3s;
+    }
+    input:focus, textarea:focus {
+      box-shadow: 0 0 10px #00ff00;
+    }
+    button {
+      margin-top: 1.5rem;
+      width: 100%;
+      padding: 1rem;
+      background: #00ff00;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 1.2rem;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #00cc00;
+    }
+    .result {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: #002200;
+      border: 1px solid #00ff00;
+      border-radius: 5px;
+      text-align: left;
+      font-size: 1rem;
+      min-height: 100px;
+      max-height: 500px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .matrix {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0.1;
+      z-index: -1;
+    }
+    .hacker-emoji {
+      position: absolute;
+      font-size: 2rem;
+      opacity: 0;
+      animation: moveEmoji 5s infinite;
+    }
+    @keyframes moveEmoji {
+      0% {
+        transform: translateY(-100vh);
+        opacity: 0;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh);
+        opacity: 0;
+      }
+    }
+    .nav-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .nav-buttons button {
+      padding: 0.8rem 1.5rem;
+      font-size: 1.2rem;
+    }
+    .section {
+      display: none;
+    }
+    .section.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas class="matrix"></canvas>
+  <div class="nav-buttons">
+    <button onclick="showSection('validator')">Validator</button>
+    <button onclick="showSection('generator')">Generator</button>
+  </div>
+
+  <div id="validator" class="section container active">
+    <h1>Credit Card Validator</h1>
+    <form id="cardForm">
+      <label for="cardData">Card Data (one per line: number,MM/YY,CVV)</label>
+      <textarea id="cardData" rows="10" placeholder="1234 5678 9012 3456,12/25,123&#10;9876 5432 1098 7654,09/23,456" required></textarea>
+      <button type="submit">Validate</button>
+    </form>
+    <div class="result" id="result"></div>
+  </div>
+
+  <div id="generator" class="section container">
+    <h1>Card Generator</h1>
+    <form id="generatorForm">
+      <label for="bin">BIN</label>
+      <input type="text" id="bin" maxlength="6" placeholder="453201" required />
+      <label for="amount">Amount</label>
+      <input type="number" id="amount" min="1" max="100" placeholder="10" required />
+      <button type="submit">Generate</button>
+    </form>
+    <div class="result" id="generatedCards"></div>
+  </div>
+
+  <script>
+    // Matrix Rain Effect
+    const canvas = document.querySelector('.matrix');
+    const ctx = canvas.getContext('2d');
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops = Array(Math.floor(columns)).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#00ff00';
+      ctx.font = fontSize + 'px monospace';
+      drops.forEach((y, i) => {
+        const text = chars.charAt(Math.floor(Math.random() * chars.length));
+        const x = i * fontSize;
+        ctx.fillText(text, x, y * fontSize);
+        if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      });
+    }
+    setInterval(drawMatrix, 33);
+
+    // Luhn Algorithm for Card Number Validation
+    function luhnCheck(cardNumber) {
+      const num = cardNumber.replace(/\s+/g, '');
+      let sum = 0;
+      let shouldDouble = false;
+      for (let i = num.length - 1; i >= 0; i--) {
+        let digit = parseInt(num.charAt(i));
+        if (shouldDouble) {
+          digit *= 2;
+          if (digit > 9) digit -= 9;
+        }
+        sum += digit;
+        shouldDouble = !shouldDouble;
+      }
+      return sum % 10 === 0;
+    }
+
+    // Validate Expiry Date
+    function validateExpiryDate(date) {
+      if (!/^\d{2}\/\d{2}$/.test(date)) return false;
+      const [month, year] = date.split('/').map(Number);
+      if (month < 1 || month > 12) return false;
+      const currentYear = new Date().getFullYear() % 100;
+      const currentMonth = new Date().getMonth() + 1;
+      if (year < currentYear || (year === currentYear && month < currentMonth)) return false;
+      return true;
+    }
+
+    // Validate CVV
+    function validateCVV(cvv) {
+      return /^\d{3,4}$/.test(cvv);
+    }
+
+    // Form Submission for Validation with simulated process
+    document.getElementById('cardForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const cardData = document.getElementById('cardData').value.trim().split('\n');
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '<p>Procesando validación...</p>';
+
+      setTimeout(() => {
+        resultDiv.innerHTML = ''; // Limpiar mensaje de procesamiento
+        let validCount = 0;
+
+        cardData.forEach(data => {
+          const [cardNumber, expiryDate, cvv] = data.split(',').map(s => s.trim());
+          const isValidCard = luhnCheck(cardNumber);
+          const isValidExpiry = validateExpiryDate(expiryDate);
+          const isValidCVV = validateCVV(cvv);
+
+          if (isValidCard && isValidExpiry && isValidCVV) {
+            validCount++;
+            resultDiv.innerHTML += `<p style="color: #00ff00;">${cardNumber} - Valid (CVV y fecha correctos)</p>`;
+          } else {
+            let reasons = [];
+            if (!isValidCard) reasons.push('Número inválido');
+            if (!isValidExpiry) reasons.push('Fecha inválida');
+            if (!isValidCVV) reasons.push('CVV inválido');
+            resultDiv.innerHTML += `<p style="color: #ff0000;">${cardNumber} - Inválido (${reasons.join(', ')})</p>`;
+          }
+        });
+
+        resultDiv.innerHTML += `<p>${validCount} de ${cardData.length} tarjetas son válidas.</p>`;
+      }, 15000); // Simula un proceso de 1.5 segundos
+    });
+
+    // Card Generation Function with mix of valid and invalid cards
+    function generateCardNumber(bin, makeValid) {
+      let cardNumber = bin;
+      while (cardNumber.length < 15) {
+        cardNumber += Math.floor(Math.random() * 10);
+      }
+      if (makeValid) {
+        // Calculate the last digit (check digit) using Luhn algorithm
+        let sum = 0;
+        let shouldDouble = true;
+        for (let i = cardNumber.length - 1; i >= 0; i--) {
+          let digit = parseInt(cardNumber.charAt(i));
+          if (shouldDouble) {
+            digit *= 2;
+            if (digit > 9) digit -= 9;
+          }
+          sum += digit;
+          shouldDouble = !shouldDouble;
+        }
+        const checkDigit = (10 - (sum % 10)) % 10;
+        return cardNumber + checkDigit;
+      } else {
+        // Generate invalid card by random last digit
+        const randomDigit = Math.floor(Math.random() * 10);
+        return cardNumber + randomDigit;
+      }
+    }
+
+    function generateExpiryDate(makeValid) {
+      if (makeValid) {
+        const month = Math.floor(Math.random() * 12 + 1).toString().padStart(2, '0');
+        const year = Math.floor(Math.random() * 10 + new Date().getFullYear() % 100).toString().padStart(2, '0');
+        return `${month}/${year}`;
+      } else {
+        // Invalid date: month > 12 or past year
+        const invalidMonth = Math.floor(Math.random() * 12 + 13).toString().padStart(2, '0'); // 13-24 invalid month
+        const pastYear = (new Date().getFullYear() % 100 - Math.floor(Math.random() * 5 + 1)).toString().padStart(2, '0');
+        return `${invalidMonth}/${pastYear}`;
+      }
+    }
+
+    function generateCVV(makeValid) {
+      if (makeValid) {
+        return Math.floor(Math.random() * 900 + 100).toString();
+      } else {
+        // Invalid CVV: letters or wrong length
+        const invalidCVVs = ['', '', '', '', ''];
+        return invalidCVVs[Math.floor(Math.random() * invalidCVVs.length)];
+      }
+    }
+
+    // Form Submission for Generation with mixed validity
+    document.getElementById('generatorForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const bin = document.getElementById('bin').value.trim();
+  const amount = parseInt(document.getElementById('amount').value.trim());
+  const generatedCardsDiv = document.getElementById('generatedCards');
+
+  if (bin.length !== 6 || isNaN(amount) || amount <= 0) {
+    generatedCardsDiv.textContent = 'Invalid BIN or Amount!';
+    return;
+  }
+
+  // Elegir porcentaje aleatorio de tarjetas válidas entre 0 y 100
+  const validPercentage = Math.random();
+
+  let generatedCards = '';
+
+  for (let i = 0; i < amount; i++) {
+    // Decidir si la tarjeta es válida según el porcentaje aleatorio
+    const makeValid = Math.random() < validPercentage;
+    const cardNumber = generateCardNumber(bin, makeValid);
+    const expiryDate = generateExpiryDate(makeValid);
+    const cvv = generateCVV(makeValid);
+    generatedCards += `${cardNumber},${expiryDate},${cvv}\n`;
+  }
+
+  generatedCardsDiv.innerHTML = `<textarea rows="10" readonly>${generatedCards}</textarea>`;
+});
+
+    // Hacker Emoji Effect
+    const hackerEmojis = ['☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', 'y'];
+    function createHackerEmoji() {
+      const emoji = document.createElement('div');
+      emoji.className = 'hacker-emoji';
+      emoji.innerText = hackerEmojis[Math.floor(Math.random() * hackerEmojis.length)];
+      emoji.style.left = Math.random() * 100 + 'vw';
+      emoji.style.animationDuration = Math.random() * 5 + 3 + 's';
+      document.body.appendChild(emoji);
+      setTimeout(() => emoji.remove(), 5000);
+    }
+    setInterval(createHackerEmoji, 100);
+
+    // Show Section Function
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.remove('active');
+      });
+      document.getElementById(sectionId).classList.add('active');
+    }
+  </script>
+</body>
+</html>
