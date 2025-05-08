@@ -231,118 +231,94 @@
       return /^\d{3,4}$/.test(cvv);
     }
 
-    // Form Submission for Validation with simulated process
+    // Form Submission for Validation
     document.getElementById('cardForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const cardData = document.getElementById('cardData').value.trim().split('\n');
-      const resultDiv = document.getElementById('result');
-      resultDiv.innerHTML = '<p>Procesando validación...</p>';
+  e.preventDefault();
+  const cardData = document.getElementById('cardData').value.trim().split('\n');
+  const resultDiv = document.getElementById('result');
+  resultDiv.innerHTML = '<p>Procesando validación...</p>';
 
-      setTimeout(() => {
-        resultDiv.innerHTML = ''; // Limpiar mensaje de procesamiento
-        let validCount = 0;
+  setTimeout(() => {
+    resultDiv.innerHTML = ''; // Limpiar mensaje de procesamiento
+    let validCount = 0;
 
-        cardData.forEach(data => {
-          const [cardNumber, expiryDate, cvv] = data.split(',').map(s => s.trim());
-          const isValidCard = luhnCheck(cardNumber);
-          const isValidExpiry = validateExpiryDate(expiryDate);
-          const isValidCVV = validateCVV(cvv);
+    cardData.forEach(data => {
+      const [cardNumber, expiryDate, cvv] = data.split(',').map(s => s.trim());
+      const isValidCard = luhnCheck(cardNumber);
+      const isValidExpiry = validateExpiryDate(expiryDate);
+      const isValidCVV = validateCVV(cvv);
 
-          if (isValidCard && isValidExpiry && isValidCVV) {
-            validCount++;
-            resultDiv.innerHTML += `<p style="color: #00ff00;">${cardNumber} - Valid (CVV y fecha correctos)</p>`;
-          } else {
-            let reasons = [];
-            if (!isValidCard) reasons.push('Número inválido');
-            if (!isValidExpiry) reasons.push('Fecha inválida');
-            if (!isValidCVV) reasons.push('CVV inválido');
-            resultDiv.innerHTML += `<p style="color: #ff0000;">${cardNumber} - Inválido (${reasons.join(', ')})</p>`;
-          }
-        });
-
-        resultDiv.innerHTML += `<p>${validCount} de ${cardData.length} tarjetas son válidas.</p>`;
-      }, 15000); // Simula un proceso de 1.5 segundos
+      if (isValidCard && isValidExpiry && isValidCVV) {
+        validCount++;
+        resultDiv.innerHTML += `<p style="color: #00ff00;">${cardNumber} - Valid (CVV y fecha correctos)</p>`;
+      } else {
+        let reasons = [];
+        if (!isValidCard) reasons.push('Número inválido');
+        if (!isValidExpiry) reasons.push('Fecha inválida');
+        if (!isValidCVV) reasons.push('CVV inválido');
+        resultDiv.innerHTML += `<p style="color: #ff0000;">${cardNumber} - Inválido (${reasons.join(', ')})</p>`;
+      }
     });
 
-    // Card Generation Function with mix of valid and invalid cards
-    function generateCardNumber(bin, makeValid) {
+    resultDiv.innerHTML += `<p>${validCount} de ${cardData.length} tarjetas son válidas.</p>`;
+  }, 15000); // Simula un proceso de 5.0 segundos
+});
+
+    // Card Generation Function
+    function generateCardNumber(bin) {
       let cardNumber = bin;
       while (cardNumber.length < 15) {
         cardNumber += Math.floor(Math.random() * 10);
       }
-      if (makeValid) {
-        // Calculate the last digit (check digit) using Luhn algorithm
-        let sum = 0;
-        let shouldDouble = true;
-        for (let i = cardNumber.length - 1; i >= 0; i--) {
-          let digit = parseInt(cardNumber.charAt(i));
-          if (shouldDouble) {
-            digit *= 2;
-            if (digit > 9) digit -= 9;
-          }
-          sum += digit;
-          shouldDouble = !shouldDouble;
+      // Calculate the last digit (check digit) using Luhn algorithm
+      let sum = 0;
+      let shouldDouble = true;
+      for (let i = cardNumber.length - 1; i >= 0; i--) {
+        let digit = parseInt(cardNumber.charAt(i));
+        if (shouldDouble) {
+          digit *= 2;
+          if (digit > 9) digit -= 9;
         }
-        const checkDigit = (10 - (sum % 10)) % 10;
-        return cardNumber + checkDigit;
-      } else {
-        // Generate invalid card by random last digit
-        const randomDigit = Math.floor(Math.random() * 10);
-        return cardNumber + randomDigit;
+        sum += digit;
+        shouldDouble = !shouldDouble;
       }
+      const checkDigit = (10 - (sum % 10)) % 10;
+      return cardNumber + checkDigit;
     }
 
-    function generateExpiryDate(makeValid) {
-      if (makeValid) {
-        const month = Math.floor(Math.random() * 12 + 1).toString().padStart(2, '0');
-        const year = Math.floor(Math.random() * 10 + new Date().getFullYear() % 100).toString().padStart(2, '0');
-        return `${month}/${year}`;
-      } else {
-        // Invalid date: month > 12 or past year
-        const invalidMonth = Math.floor(Math.random() * 12 + 13).toString().padStart(2, '0'); // 13-24 invalid month
-        const pastYear = (new Date().getFullYear() % 100 - Math.floor(Math.random() * 5 + 1)).toString().padStart(2, '0');
-        return `${invalidMonth}/${pastYear}`;
-      }
+    function generateExpiryDate() {
+      const month = Math.floor(Math.random() * 12 + 1).toString().padStart(2, '0');
+      const year = Math.floor(Math.random() * 10 + new Date().getFullYear() % 100).toString().padStart(2, '0');
+      return `${month}/${year}`;
     }
 
-    function generateCVV(makeValid) {
-      if (makeValid) {
-        return Math.floor(Math.random() * 900 + 100).toString();
-      } else {
-        // Invalid CVV: letters or wrong length
-        const invalidCVVs = ['', '', '', '', ''];
-        return invalidCVVs[Math.floor(Math.random() * invalidCVVs.length)];
-      }
+    function generateCVV() {
+      return Math.floor(Math.random() * 900 + 100).toString();
     }
 
-    // Form Submission for Generation with mixed validity
+    // Form Submission for Generation
     document.getElementById('generatorForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const bin = document.getElementById('bin').value.trim();
-  const amount = parseInt(document.getElementById('amount').value.trim());
-  const generatedCardsDiv = document.getElementById('generatedCards');
+      e.preventDefault();
+      const bin = document.getElementById('bin').value.trim();
+      const amount = parseInt(document.getElementById('amount').value.trim());
+      const generatedCardsDiv = document.getElementById('generatedCards');
 
-  if (bin.length !== 6 || isNaN(amount) || amount <= 0) {
-    generatedCardsDiv.textContent = 'Invalid BIN or Amount!';
-    return;
-  }
+      if (bin.length !== 6 || isNaN(amount) || amount <= 0) {
+        generatedCardsDiv.textContent = 'Invalid BIN or Amount!';
+        return;
+      }
 
-  // Elegir porcentaje aleatorio de tarjetas válidas entre 0 y 100
-  const validPercentage = Math.random();
+      let generatedCards = '';
 
-  let generatedCards = '';
+      for (let i = 0; i < amount; i++) {
+        const cardNumber = generateCardNumber(bin);
+        const expiryDate = generateExpiryDate();
+        const cvv = generateCVV();
+        generatedCards += `${cardNumber},${expiryDate},${cvv}\n`;
+      }
 
-  for (let i = 0; i < amount; i++) {
-    // Decidir si la tarjeta es válida según el porcentaje aleatorio
-    const makeValid = Math.random() < validPercentage;
-    const cardNumber = generateCardNumber(bin, makeValid);
-    const expiryDate = generateExpiryDate(makeValid);
-    const cvv = generateCVV(makeValid);
-    generatedCards += `${cardNumber},${expiryDate},${cvv}\n`;
-  }
-
-  generatedCardsDiv.innerHTML = `<textarea rows="10" readonly>${generatedCards}</textarea>`;
-});
+      generatedCardsDiv.innerHTML = `<textarea rows="10" readonly>${generatedCards}</textarea>`;
+    });
 
     // Hacker Emoji Effect
     const hackerEmojis = ['☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', 'y'];
