@@ -7,7 +7,7 @@
   <style>
     body {
       background: linear-gradient(45deg, #0a0a0a, #1a1a1a);
-      color: #00ff00;
+      color: #ff0000;
       font-family: 'Courier New', Courier, monospace;
       display: flex;
       flex-direction: column;
@@ -15,6 +15,9 @@
       margin: 0;
       overflow: auto;
       position: relative;
+      -webkit-user-select: none; /* Safari */
+      -ms-user-select: none; /* IE 10 and IE 11 */
+      user-select: none; /* Standard syntax */
     }
     .container {
       background: #000;
@@ -23,7 +26,7 @@
       border-radius: 10px;
       width: 90%;
       max-width: 800px;
-      box-shadow: 0 0 20px #00ff00, inset 0 0 10px #00ff00;
+      box-shadow: 0 0 20px #ff0000, inset 0 0 10px #00ff00;
       position: relative;
       animation: glitch 2s infinite;
       z-index: 1;
@@ -40,7 +43,7 @@
     h1 {
       text-align: center;
       margin-bottom: 1rem;
-      text-shadow: 0 0 10px #00ff00;
+      text-shadow: 0 0 10px #ff0000;
       font-size: 2rem;
       animation: blink 1.5s infinite;
     }
@@ -57,21 +60,21 @@
       width: 100%;
       padding: 0.8rem;
       background: #111;
-      border: 1px solid #00ff00;
-      color: #00ff00;
+      border: 1px solid #ff0000;
+      color: #ff0000;
       font-size: 1.2rem;
       border-radius: 5px;
       outline: none;
       transition: box-shadow 0.3s;
     }
     input:focus, textarea:focus {
-      box-shadow: 0 0 10px #00ff00;
+      box-shadow: 0 0 10px #ff0000;
     }
     button {
       margin-top: 1.5rem;
       width: 100%;
       padding: 1rem;
-      background: #00ff00;
+      background: #ff0000;
       border: none;
       color: #000;
       font-weight: bold;
@@ -81,13 +84,13 @@
       transition: background 0.3s;
     }
     button:hover {
-      background: #00cc00;
+      background: #cc0000;
     }
     .result {
       margin-top: 1.5rem;
       padding: 1.5rem;
-      background: #002200;
-      border: 1px solid #00ff00;
+      background: #220000;
+      border: 1px solid #ff0000;
       border-radius: 5px;
       text-align: left;
       font-size: 1rem;
@@ -111,6 +114,7 @@
       font-size: 2rem;
       opacity: 0;
       animation: moveEmoji 5s infinite;
+      color: #00ff00; /* Color inicial */
     }
     @keyframes moveEmoji {
       0% {
@@ -150,8 +154,8 @@
     #chat {
       margin-top: 1.5rem;
       padding: 1.5rem;
-      background: #002200;
-      border: 1px solid #00ff00;
+      background: #220000;
+      border: 1px solid #ff0000;
       border-radius: 5px;
       text-align: left;
       font-size: 1rem;
@@ -160,19 +164,12 @@
       overflow-y: auto;
       white-space: pre-wrap;
     }
-    #chatMessages {
-      height: 200px;
-      overflow-y: auto;
-      border: 1px solid #00ff00;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
     #chatInput {
       width: 100%;
       padding: 0.5rem;
       background: #111;
-      border: 1px solid #00ff00;
-      color: #00ff00;
+      border: 1px solid #ff0000;
+      color: #ff0000;
       font-size: 1rem;
       border-radius: 5px;
       outline: none;
@@ -201,11 +198,14 @@
 
   <div id="register" class="section container">
     <h1>Create Account</h1>
+    <p>entra ah grupo mmg : <a href="https://t.me/+v12hhAimwtY5OGEx" target="_blank">Join Telegram Group</a></p>
     <form id="registerForm">
       <label for="newUsername">Username</label>
       <input type="text" id="newUsername" placeholder="Username" required />
       <label for="newPassword">Password</label>
       <input type="password" id="newPassword" placeholder="Password" required />
+      <label for="telegramConfirmation">I have joined the Telegram group</label>
+      <input type="checkbox" id="telegramConfirmation" required />
       <button type="submit">Register</button>
     </form>
     <button onclick="showSection('login')">Back to Login</button>
@@ -249,14 +249,10 @@
     </div>
   </div>
 
-  <div id="chat" class="section container">
-    <h1>Live Chat</h1>
-    <div id="chatMessages"></div>
-    <input type="text" id="chatInput" placeholder="Type your message here..." />
-    <button onclick="sendMessage()">Send</button>
-  </div>
-
   <script>
+    // Deshabilitar el clic derecho
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
     // Matrix Rain Effect
     const canvas = document.querySelector('.matrix');
     const ctx = canvas.getContext('2d');
@@ -270,7 +266,7 @@
     function drawMatrix() {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#00ff00';
+      ctx.fillStyle = '#ff0000';
       ctx.font = fontSize + 'px monospace';
       drops.forEach((y, i) => {
         const text = chars.charAt(Math.floor(Math.random() * chars.length));
@@ -334,7 +330,7 @@
 
           if (isValidCard && isValidExpiry && isValidCVV) {
             validCount++;
-            resultDiv.innerHTML += `<p style="color: #00ff00;">${cardNumber} - Valid (CVV y fecha correctos)</p>`;
+            resultDiv.innerHTML += `<p style="color: #00ff00;">${cardNumber} - Valid (CVV: ${cvv}, Fecha: ${expiryDate})</p>`;
           } else {
             let reasons = [];
             if (!isValidCard) reasons.push('Número inválido');
@@ -431,17 +427,19 @@
     });
 
     // Hacker Emoji Effect
-    const hackerEmojis = ['☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', 'y'];
+    const hackerEmojis = ['☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎', '☠︎'];
     function createHackerEmoji() {
       const emoji = document.createElement('div');
       emoji.className = 'hacker-emoji';
       emoji.innerText = hackerEmojis[Math.floor(Math.random() * hackerEmojis.length)];
       emoji.style.left = Math.random() * 100 + 'vw';
       emoji.style.animationDuration = Math.random() * 5 + 3 + 's';
+      // Alternar entre verde y rojo
+      emoji.style.color = Math.random() > 0.5 ? '#00ff00' : '#ff0000';
       document.body.appendChild(emoji);
       setTimeout(() => emoji.remove(), 5000);
     }
-    setInterval(createHackerEmoji, 100);
+    setInterval(createHackerEmoji, 1);
 
     // Show Section Function
     function showSection(sectionId) {
@@ -488,6 +486,12 @@
       e.preventDefault();
       const newUsername = document.getElementById('newUsername').value.trim();
       const newPassword = document.getElementById('newPassword').value.trim();
+      const telegramConfirmation = document.getElementById('telegramConfirmation').checked;
+
+      if (!telegramConfirmation) {
+        alert('You must join the Telegram group before registering!');
+        return;
+      }
 
       // Save new user to localStorage
       const users = JSON.parse(localStorage.getItem('users')) || {};
@@ -539,29 +543,6 @@
 
     // Update user activity display on load
     updateUserActivityDisplay();
-
-    // Chat functionality
-    function loadMessages() {
-      const messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
-      const chatMessagesDiv = document.getElementById('chatMessages');
-      chatMessagesDiv.innerHTML = messages.map(msg => `<p>${msg}</p>`).join('');
-    }
-
-    function sendMessage() {
-      const chatInput = document.getElementById('chatInput');
-      const message = chatInput.value.trim();
-      if (message) {
-        const messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
-        messages.push(message);
-        localStorage.setItem('chatMessages', JSON.stringify(messages));
-        loadMessages();
-        chatInput.value = '';
-      }
-    }
-
-    // Load messages on page load
-    loadMessages();
   </script>
 </body>
 </html>
-
